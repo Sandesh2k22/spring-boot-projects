@@ -1,0 +1,10 @@
+target/
+*.class
+*.log
+.idea/
+*.iml
+.DS_Store
+HELP.md
+.mvn/
+mvnw
+mvnw.cmd
