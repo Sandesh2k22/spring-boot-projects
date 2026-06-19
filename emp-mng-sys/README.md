@@ -12,6 +12,28 @@ It demonstrates a clean, layered architecture with the DTO pattern, Bean Validat
 - Consistent JSON response envelope (`ApiResponse<T>`) with meaningful messages
 - Layered architecture: Controller → Service → Repository, with separate DTO/Entity/Mapper layers
 
+## Entity Relationship
+
+```
+┌────────────────────────┐         1        N ┌────────────────────────┐
+│       Department       │◄───────────────────│        Employee        │
+├────────────────────────┤  department_id (FK) ├────────────────────────┤
+│ id (PK)                │                     │ id (PK)                │
+│ name        [unique]   │                     │ firstName              │
+│ description            │                     │ lastName               │
+└────────────────────────┘                     │ email       [unique]   │
+                                                │ phoneNumber            │
+                                                │ dateOfJoining          │
+                                                │ salary                 │
+                                                │ department_id (FK)     │
+                                                └────────────────────────┘
+```
+
+- **Department → Employee**: one-to-many, mapped by `Employee.department`. `Department.employees` uses `cascade = ALL` + `orphanRemoval = true`, so deleting a department deletes its employees, and removing an employee from the in-memory list deletes it from the database.
+- **Employee → Department**: many-to-one via `department_id` (`nullable = false`, `FetchType.LAZY`) — every employee must belong to exactly one department.
+- Both relationship fields are excluded from Lombok's `equals()`/`hashCode()`/`toString()` (`@EqualsAndHashCode.Exclude`, `@ToString.Exclude`) to avoid infinite recursion across the bidirectional link.
+- API responses never serialize entities directly — `DepartmentResponseDto` embeds a lightweight `EmployeeSummaryDto` list, and `EmployeeResponseDto` embeds just `departmentId`/`departmentName`, so there's no circular JSON either.
+
 ## Tech Stack
 
 | Layer       | Technology                          |
