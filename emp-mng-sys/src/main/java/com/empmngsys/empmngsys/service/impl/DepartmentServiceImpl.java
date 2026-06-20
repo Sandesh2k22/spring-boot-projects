@@ -9,10 +9,12 @@ import com.empmngsys.empmngsys.mapper.DepartmentMapper;
 import com.empmngsys.empmngsys.repository.DepartmentRepository;
 import com.empmngsys.empmngsys.service.DepartmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+// import java.util.List; // no longer needed: getAllDepartments is now paginated
 
 @Service
 @RequiredArgsConstructor
@@ -39,12 +41,18 @@ public class DepartmentServiceImpl implements DepartmentService {
         return DepartmentMapper.toResponseDto(department);
     }
 
+    // @Override
+    // @Transactional(readOnly = true)
+    // public List<DepartmentResponseDto> getAllDepartments() {
+    //     return departmentRepository.findAll().stream()
+    //             .map(DepartmentMapper::toResponseDto)
+    //             .toList();
+    // }
     @Override
     @Transactional(readOnly = true)
-    public List<DepartmentResponseDto> getAllDepartments() {
-        return departmentRepository.findAll().stream()
-                .map(DepartmentMapper::toResponseDto)
-                .toList();
+    public Page<DepartmentResponseDto> getAllDepartments(Pageable pageable) {
+        return departmentRepository.findAll(pageable)
+                .map(DepartmentMapper::toResponseDto);
     }
 
     @Override

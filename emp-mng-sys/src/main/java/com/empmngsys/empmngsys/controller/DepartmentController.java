@@ -6,11 +6,14 @@ import com.empmngsys.empmngsys.dto.DepartmentResponseDto;
 import com.empmngsys.empmngsys.service.DepartmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+// import java.util.List; // no longer needed: getAllDepartments now returns a paginated Page
 
 @RestController
 @RequestMapping("/api/v1/departments")
@@ -33,9 +36,15 @@ public class DepartmentController {
         return ResponseEntity.ok(ApiResponse.success("Department retrieved successfully", department));
     }
 
+    // @GetMapping
+    // public ResponseEntity<ApiResponse<List<DepartmentResponseDto>>> getAllDepartments() {
+    //     List<DepartmentResponseDto> departments = departmentService.getAllDepartments();
+    //     return ResponseEntity.ok(ApiResponse.success("Departments retrieved successfully", departments));
+    // }
     @GetMapping
-    public ResponseEntity<ApiResponse<List<DepartmentResponseDto>>> getAllDepartments() {
-        List<DepartmentResponseDto> departments = departmentService.getAllDepartments();
+    public ResponseEntity<ApiResponse<Page<DepartmentResponseDto>>> getAllDepartments(
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        Page<DepartmentResponseDto> departments = departmentService.getAllDepartments(pageable);
         return ResponseEntity.ok(ApiResponse.success("Departments retrieved successfully", departments));
     }
 

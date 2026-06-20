@@ -135,7 +135,7 @@ emp-mng-sys/
 | Method | Endpoint                              | Description                              |
 |--------|----------------------------------------|-------------------------------------------|
 | POST   | `/api/v1/departments`                  | Create a new department                  |
-| GET    | `/api/v1/departments`                  | Get all departments                       |
+| GET    | `/api/v1/departments?page=&size=&sort=`| Get all departments (paginated)           |
 | GET    | `/api/v1/departments/{id}`             | Get a department by ID                    |
 | PUT    | `/api/v1/departments/{id}`             | Update a department                       |
 | DELETE | `/api/v1/departments/{id}`             | Delete a department (cascades employees)  |
@@ -153,8 +153,8 @@ emp-mng-sys/
 | Method | Endpoint                                          | Description                                  |
 |--------|----------------------------------------------------|-----------------------------------------------|
 | POST   | `/api/v1/employees`                                | Create a new employee                        |
-| GET    | `/api/v1/employees`                                | Get all employees                            |
-| GET    | `/api/v1/employees?departmentId={id}`              | Get employees filtered by department         |
+| GET    | `/api/v1/employees?page=&size=&sort=`              | Get all employees (paginated)                |
+| GET    | `/api/v1/employees?departmentId={id}&page=&size=`  | Get employees filtered by department (paginated) |
 | GET    | `/api/v1/employees/{id}`                           | Get an employee by ID                        |
 | PUT    | `/api/v1/employees/{id}`                           | Update an employee                           |
 | DELETE | `/api/v1/employees/{id}`                           | Delete an employee                           |
@@ -169,6 +169,34 @@ emp-mng-sys/
   "dateOfJoining": "2024-01-15",
   "salary": 75000.00,
   "departmentId": 1
+}
+```
+
+### Pagination
+
+Both list endpoints (`GET /api/v1/departments`, `GET /api/v1/employees`) accept Spring Data's standard paging query parameters:
+
+| Param  | Default | Notes                                                              |
+|--------|---------|---------------------------------------------------------------------|
+| `page` | `0`     | Zero-indexed page number                                            |
+| `size` | `10`    | Capped at `100` (`spring.data.web.pageable.max-page-size`)          |
+| `sort` | `id,asc`| e.g. `sort=lastName,desc`; repeat the param for multi-field sorting |
+
+`data` is a Spring `Page` object instead of a plain array:
+```json
+{
+  "success": true,
+  "message": "Employees retrieved successfully",
+  "data": {
+    "content": [ { } ],
+    "number": 0,
+    "size": 10,
+    "totalElements": 6,
+    "totalPages": 1,
+    "first": true,
+    "last": true
+  },
+  "timestamp": "2026-06-20T23:11:06.614346749"
 }
 ```
 

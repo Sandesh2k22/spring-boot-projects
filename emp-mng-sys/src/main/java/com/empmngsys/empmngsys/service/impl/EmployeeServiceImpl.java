@@ -11,10 +11,12 @@ import com.empmngsys.empmngsys.repository.DepartmentRepository;
 import com.empmngsys.empmngsys.repository.EmployeeRepository;
 import com.empmngsys.empmngsys.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+// import java.util.List; // no longer needed: list-returning methods below are now paginated
 
 @Service
 @RequiredArgsConstructor
@@ -43,21 +45,34 @@ public class EmployeeServiceImpl implements EmployeeService {
         return EmployeeMapper.toResponseDto(employee);
     }
 
+    // @Override
+    // @Transactional(readOnly = true)
+    // public List<EmployeeResponseDto> getAllEmployees() {
+    //     return employeeRepository.findAll().stream()
+    //             .map(EmployeeMapper::toResponseDto)
+    //             .toList();
+    // }
     @Override
     @Transactional(readOnly = true)
-    public List<EmployeeResponseDto> getAllEmployees() {
-        return employeeRepository.findAll().stream()
-                .map(EmployeeMapper::toResponseDto)
-                .toList();
+    public Page<EmployeeResponseDto> getAllEmployees(Pageable pageable) {
+        return employeeRepository.findAll(pageable)
+                .map(EmployeeMapper::toResponseDto);
     }
 
+    // @Override
+    // @Transactional(readOnly = true)
+    // public List<EmployeeResponseDto> getEmployeesByDepartment(Long departmentId) {
+    //     findDepartmentOrThrow(departmentId);
+    //     return employeeRepository.findByDepartmentId(departmentId).stream()
+    //             .map(EmployeeMapper::toResponseDto)
+    //             .toList();
+    // }
     @Override
     @Transactional(readOnly = true)
-    public List<EmployeeResponseDto> getEmployeesByDepartment(Long departmentId) {
+    public Page<EmployeeResponseDto> getEmployeesByDepartment(Long departmentId, Pageable pageable) {
         findDepartmentOrThrow(departmentId);
-        return employeeRepository.findByDepartmentId(departmentId).stream()
-                .map(EmployeeMapper::toResponseDto)
-                .toList();
+        return employeeRepository.findByDepartmentId(departmentId, pageable)
+                .map(EmployeeMapper::toResponseDto);
     }
 
     @Override

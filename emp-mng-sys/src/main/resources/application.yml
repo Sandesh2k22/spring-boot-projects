@@ -36,6 +36,12 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+  data:
+    web:
+      pageable:
+        max-page-size: 100      # hard ceiling: ?size= above this is clamped, protects against ?size=999999 abuse
+        one-indexed-parameters: false  # ?page=0 is the first page (Spring's default, matches Page#getNumber)
+
 logging:
   level:
     root: INFO
