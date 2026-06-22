@@ -8,7 +8,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,27 +29,31 @@ public class EmployeeController {
     private final EmployeeRepository employeeRepository;
 
     @Operation(
-        summary = "Filter by city — toggle index on/off to compare execution time",
-        description = "indexed=true  → normal query, MySQL uses idx_employee_city (index scan).\n" +
-                      "indexed=false → IGNORE INDEX hint forces a full table scan, simulating no-index performance.\n" +
-                      "Run both and compare executionTimeMs to see the real impact of indexing."
+        summary = "Find employee by ID (primary key lookup)",
+        description = "Uses findById, a direct primary key lookup via the clustered index — fastest possible query."
+    )
+    @GetMapping("/{id}")
+    public ResponseEntity<Employee> findById(
+            @Parameter(description = "Employee ID", example = "1") @PathVariable Long id) {
+        return employeeRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @Operation(
+        summary = "Filter by city",
+        description = "Uses idx_employee_city (index scan) to filter employees by city."
     )
     @GetMapping("/by-city")
     public Map<String, Object> findByCity(
-            @Parameter(description = "City name to filter on", example = "Pune") @RequestParam String city,
-            @Parameter(description = "true = use index (fast), false = ignore index (full table scan)")
-            @RequestParam(defaultValue = "true") boolean indexed) {
+            @Parameter(description = "City name to filter on", example = "Pune") @RequestParam String city) {
 
         long start = System.nanoTime();
-        List<Employee> result = indexed
-                ? employeeRepository.findByCity(city)
-                : employeeRepository.findByCityIgnoreIndex(city);
+        List<Employee> result = employeeRepository.findByCity(city);
         long durationMs = (System.nanoTime() - start) / 1_000_000;
 
         Map<String, Object> response = new HashMap<>();
         response.put("city", city);
-        response.put("indexed", indexed);
-        response.put("scanType", indexed ? "INDEX SCAN (idx_employee_city)" : "FULL TABLE SCAN (IGNORE INDEX)");
         response.put("count", result.size());
         response.put("executionTimeMs", durationMs);
         return response;
