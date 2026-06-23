@@ -128,6 +128,52 @@ emp-mng-sys/
 
    The API will be available at `http://localhost:8080`.
 
+## Security
+
+All endpoints are secured with **Spring Security** using **HTTP Basic authentication**.
+Passwords are hashed with **BCrypt** (`BCryptPasswordEncoder`) at startup.
+
+### Roles
+
+| Operation                | Required role        |
+|--------------------------|----------------------|
+| `GET` (reads)            | `USER` or `ADMIN`    |
+| `POST`/`PUT`/`DELETE`    | `ADMIN`              |
+
+Unauthenticated requests receive `401 Unauthorized`; authenticated requests
+without the required role receive `403 Forbidden`.
+
+### Default users
+
+Credentials are configurable via environment variables (defaults shown):
+
+| Username | Password   | Roles         | Env overrides                                  |
+|----------|------------|---------------|------------------------------------------------|
+| `user`   | `user123`  | USER          | `APP_USER_USERNAME`, `APP_USER_PASSWORD`       |
+| `admin`  | `admin123` | USER, ADMIN   | `APP_ADMIN_USERNAME`, `APP_ADMIN_PASSWORD`     |
+
+> Change these before deploying to any non-local environment.
+
+### Testing with Postman
+
+1. Open a request to, e.g., `GET http://localhost:8080/api/v1/employees`.
+2. Go to the **Authorization** tab → Type: **Basic Auth**.
+3. Enter a username/password (`admin` / `admin123` for full access).
+4. Send the request. Without credentials you get `401`; with `user` credentials,
+   write operations return `403`.
+
+Equivalent with `curl`:
+```bash
+# Read (any authenticated user)
+curl -u user:user123 http://localhost:8080/api/v1/employees
+
+# Write (ADMIN only)
+curl -u admin:admin123 -X DELETE http://localhost:8080/api/v1/employees/1
+
+# No credentials -> 401
+curl -i http://localhost:8080/api/v1/employees
+```
+
 ## API Endpoints
 
 ### Department

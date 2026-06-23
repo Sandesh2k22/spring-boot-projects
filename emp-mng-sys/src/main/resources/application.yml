@@ -10,6 +10,17 @@ spring:
   application:
     name: emp-mng-sys
 
+# HTTP Basic Auth credentials (BCrypt-encoded at startup).
+# Override these in production via environment variables or an external config.
+app:
+  security:
+    user:
+      username: ${APP_USER_USERNAME:user}
+      password: ${APP_USER_PASSWORD:user123}
+    admin:
+      username: ${APP_ADMIN_USERNAME:admin}
+      password: ${APP_ADMIN_PASSWORD:admin123}
+
   datasource:
     url: jdbc:mysql://localhost:3306/emp_mng_sys?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
     username: springuser
