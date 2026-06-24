@@ -130,8 +130,11 @@ emp-mng-sys/
 
 ## Security
 
-All endpoints are secured with **Spring Security** using **HTTP Basic authentication**.
-Passwords are hashed with **BCrypt** (`BCryptPasswordEncoder`) at startup.
+All endpoints are secured with **Spring Security** using **stateless JWT authentication**.
+Clients authenticate once at `POST /api/v1/auth/login` with username/password and
+receive a signed JWT, which they then send as a `Bearer` token on every request.
+Passwords are hashed with **BCrypt** (`BCryptPasswordEncoder`) at startup; tokens are
+signed with HMAC-SHA.
 
 ### Roles
 
@@ -154,27 +157,54 @@ Credentials are configurable via environment variables (defaults shown):
 
 > Change these before deploying to any non-local environment.
 
-### Testing with Postman
+### JWT settings
 
-1. Open a request to, e.g., `GET http://localhost:8080/api/v1/employees`.
-2. Go to the **Authorization** tab → Type: **Basic Auth**.
-3. Enter a username/password (`admin` / `admin123` for full access).
-4. Send the request. Without credentials you get `401`; with `user` credentials,
-   write operations return `403`.
+| Setting        | Default  | Env override            |
+|----------------|----------|-------------------------|
+| Signing secret | dev key  | `APP_JWT_SECRET` (Base64, ≥ 256 bits) |
+| Token lifetime | 1 hour   | `APP_JWT_EXPIRATION_MS` |
 
-Equivalent with `curl`:
+### Authenticating
+
+**1. Log in to get a token:**
 ```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+```
+Response (`data.token` holds the JWT):
+```json
+{
+  "success": true,
+  "message": "Authentication successful",
+  "data": { "token": "eyJhbGci...", "tokenType": "Bearer", "expiresInMs": 3600000 }
+}
+```
+
+**2. Call protected endpoints with the token:**
+```bash
+TOKEN="eyJhbGci..."
+
 # Read (any authenticated user)
-curl -u user:user123 http://localhost:8080/api/v1/employees
+curl http://localhost:8080/api/v1/employees -H "Authorization: Bearer $TOKEN"
 
 # Write (ADMIN only)
-curl -u admin:admin123 -X DELETE http://localhost:8080/api/v1/employees/1
+curl -X DELETE http://localhost:8080/api/v1/employees/1 -H "Authorization: Bearer $TOKEN"
 
-# No credentials -> 401
+# No/invalid token -> 401
 curl -i http://localhost:8080/api/v1/employees
 ```
 
+In Postman: call `POST /api/v1/auth/login`, copy `data.token`, then on other
+requests set **Authorization → Type: Bearer Token** and paste it.
+
 ## API Endpoints
+
+### Auth
+
+| Method | Endpoint              | Description                          |
+|--------|-----------------------|--------------------------------------|
+| POST   | `/api/v1/auth/login`  | Authenticate and obtain a JWT (public) |
 
 ### Department
 

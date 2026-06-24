@@ -20,6 +20,11 @@ app:
     admin:
       username: ${APP_ADMIN_USERNAME:admin}
       password: ${APP_ADMIN_PASSWORD:admin123}
+    jwt:
+      # Base64-encoded HMAC signing secret (>= 256 bits). Override in production.
+      secret: ${APP_JWT_SECRET:Y2hhbmdlLW1lLXRoaXMtaXMtYS1kZXYtb25seS1qd3Qtc2lnbmluZy1zZWNyZXQtMjU2LWJpdHM=}
+      # Access token lifetime in milliseconds (default 1 hour).
+      expiration-ms: ${APP_JWT_EXPIRATION_MS:3600000}
 
   datasource:
     url: jdbc:mysql://localhost:3306/emp_mng_sys?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
