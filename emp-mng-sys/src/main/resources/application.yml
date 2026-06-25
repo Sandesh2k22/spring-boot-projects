@@ -23,7 +23,7 @@ app:
     jwt:
       # Base64-encoded HMAC signing secret (>= 256 bits). Override in production.
       secret: ${APP_JWT_SECRET:Y2hhbmdlLW1lLXRoaXMtaXMtYS1kZXYtb25seS1qd3Qtc2lnbmluZy1zZWNyZXQtMjU2LWJpdHM=}
-      # Access token lifetime in milliseconds (default 1 hour).
+      # Access token lifetime in milliseconds (default 1 hour). Override in production.
       expiration-ms: ${APP_JWT_EXPIRATION_MS:3600000}
 
   datasource:

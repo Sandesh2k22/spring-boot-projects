@@ -7,6 +7,7 @@ It demonstrates a clean, layered architecture with the DTO pattern, Bean Validat
 
 - Full CRUD for `Department` and `Employee`
 - One-to-Many relationship: a `Department` has many `Employee`s
+- Stateless **JWT authentication** with role-based authorization (USER/ADMIN) and BCrypt-hashed passwords
 - Request validation via Jakarta Bean Validation
 - Centralized error handling via `@ControllerAdvice`
 - Consistent JSON response envelope (`ApiResponse<T>`) with meaningful messages
@@ -15,13 +16,13 @@ It demonstrates a clean, layered architecture with the DTO pattern, Bean Validat
 ## Entity Relationship
 
 ```
-┌────────────────────────┐         1        N ┌────────────────────────┐
-│       Department       │◄───────────────────│        Employee        │
-├────────────────────────┤  department_id (FK) ├────────────────────────┤
-│ id (PK)                │                     │ id (PK)                │
-│ name        [unique]   │                     │ firstName              │
-│ description            │                     │ lastName               │
-└────────────────────────┘                     │ email       [unique]   │
+┌────────────────────────┐         1        N   ┌────────────────────────┐
+│       Department       │◄───────────────────  │        Employee        │
+├────────────────────────┤  department_id (FK)  ├────────────────────────┤
+│ id (PK)                │                      │ id (PK)                │
+│ name        [unique]   │                      │ firstName              │
+│ description            │                      │ lastName               │
+└────────────────────────┘                      │ email       [unique]   │
                                                 │ phoneNumber            │
                                                 │ dateOfJoining          │
                                                 │ salary                 │
@@ -43,6 +44,7 @@ It demonstrates a clean, layered architecture with the DTO pattern, Bean Validat
 | Persistence | Spring Data JPA (Hibernate)          |
 | Database    | MySQL 8                              |
 | Build Tool  | Maven                                |
+| Security    | Spring Security + JWT (jjwt 0.12.x)  |
 | Validation  | Jakarta Bean Validation (Hibernate Validator) |
 | Utilities   | Lombok                               |
 
@@ -57,7 +59,13 @@ emp-mng-sys/
     ├── main
     │   ├── java/com/empmngsys/empmngsys
     │   │   ├── EmpMngSysApplication.java        # Application entry point
+    │   │   ├── config/                         # Spring configuration
+    │   │   │   └── SecurityConfig.java          # Spring Security + JWT filter chain
+    │   │   ├── security/                        # JWT authentication
+    │   │   │   ├── JwtService.java              # Token generation/validation
+    │   │   │   └── JwtAuthenticationFilter.java # Per-request bearer-token filter
     │   │   ├── controller/                      # REST controllers
+    │   │   │   ├── AuthController.java
     │   │   │   ├── DepartmentController.java
     │   │   │   └── EmployeeController.java
     │   │   ├── service/                         # Service interfaces
@@ -74,6 +82,8 @@ emp-mng-sys/
     │   │   │   └── Employee.java
     │   │   ├── dto/                              # Request/response DTOs
     │   │   │   ├── ApiResponse.java
+    │   │   │   ├── AuthResponse.java
+    │   │   │   ├── LoginRequest.java
     │   │   │   ├── DepartmentRequestDto.java
     │   │   │   ├── DepartmentResponseDto.java
     │   │   │   ├── EmployeeRequestDto.java
