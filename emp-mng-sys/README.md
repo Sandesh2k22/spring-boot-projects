@@ -8,6 +8,7 @@ It demonstrates a clean, layered architecture with the DTO pattern, Bean Validat
 - Full CRUD for `Department` and `Employee`
 - One-to-Many relationship: a `Department` has many `Employee`s
 - Stateless **JWT authentication** with role-based authorization (USER/ADMIN) and BCrypt-hashed passwords
+- Interactive **API documentation** via Swagger UI / OpenAPI (springdoc)
 - Request validation via Jakarta Bean Validation
 - Centralized error handling via `@ControllerAdvice`
 - Consistent JSON response envelope (`ApiResponse<T>`) with meaningful messages
@@ -45,6 +46,7 @@ It demonstrates a clean, layered architecture with the DTO pattern, Bean Validat
 | Database    | MySQL 8                              |
 | Build Tool  | Maven                                |
 | Security    | Spring Security + JWT (jjwt 0.12.x)  |
+| API Docs    | springdoc-openapi (Swagger UI)       |
 | Validation  | Jakarta Bean Validation (Hibernate Validator) |
 | Utilities   | Lombok                               |
 
@@ -60,7 +62,8 @@ emp-mng-sys/
     │   ├── java/com/empmngsys/empmngsys
     │   │   ├── EmpMngSysApplication.java        # Application entry point
     │   │   ├── config/                         # Spring configuration
-    │   │   │   └── SecurityConfig.java          # Spring Security + JWT filter chain
+    │   │   │   ├── SecurityConfig.java          # Spring Security + JWT filter chain
+    │   │   │   └── OpenApiConfig.java           # Swagger/OpenAPI + JWT scheme
     │   │   ├── security/                        # JWT authentication
     │   │   │   ├── JwtService.java              # Token generation/validation
     │   │   │   └── JwtAuthenticationFilter.java # Per-request bearer-token filter
@@ -207,6 +210,21 @@ curl -i http://localhost:8080/api/v1/employees
 
 In Postman: call `POST /api/v1/auth/login`, copy `data.token`, then on other
 requests set **Authorization → Type: Bearer Token** and paste it.
+
+## API Documentation (Swagger)
+
+Once the app is running, interactive OpenAPI docs are available at:
+
+| Resource          | URL                                            |
+|-------------------|------------------------------------------------|
+| Swagger UI        | `http://localhost:8080/swagger-ui.html`        |
+| OpenAPI JSON      | `http://localhost:8080/v3/api-docs`            |
+
+These paths are public (no token required). To call secured endpoints from the UI:
+
+1. `POST /api/v1/auth/login` (expand it, **Try it out**, send `admin`/`admin123`) and copy `data.token`.
+2. Click **Authorize** (top right), paste the token, and confirm.
+3. All subsequent requests send `Authorization: Bearer <token>` automatically.
 
 ## API Endpoints
 

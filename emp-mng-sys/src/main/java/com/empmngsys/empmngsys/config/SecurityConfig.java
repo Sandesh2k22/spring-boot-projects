@@ -16,7 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpStatus;
 
 /**
  * Spring Security configuration.
@@ -41,10 +43,6 @@ public class SecurityConfig {
     private String adminUsername;
     @Value("${app.security.admin.password:admin123}")
     private String adminPassword;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -70,15 +68,21 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
                 // Stateless JWT API: CSRF protection is not needed (no cookies/sessions).
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Login endpoint is public.
+                        // Login endpoint and API docs are public.
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
+                        .permitAll()
+                        // Error dispatch must not be re-secured (otherwise the 403/401 from the
+                        // original request gets overwritten when forwarding to /error).
+                        .requestMatchers("/error").permitAll()
                         // Reads: any authenticated user.
                         .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("USER", "ADMIN")
                         // Writes: ADMIN only.
@@ -87,6 +91,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                         // Everything else still requires authentication.
                         .anyRequest().authenticated())
+                // Unauthenticated requests get 401 (not the default 403 for anonymous).
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

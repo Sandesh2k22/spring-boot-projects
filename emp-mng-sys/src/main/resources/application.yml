@@ -10,24 +10,8 @@ spring:
   application:
     name: emp-mng-sys
 
-# HTTP Basic Auth credentials (BCrypt-encoded at startup).
-# Override these in production via environment variables or an external config.
-app:
-  security:
-    user:
-      username: ${APP_USER_USERNAME:user}
-      password: ${APP_USER_PASSWORD:user123}
-    admin:
-      username: ${APP_ADMIN_USERNAME:admin}
-      password: ${APP_ADMIN_PASSWORD:admin123}
-    jwt:
-      # Base64-encoded HMAC signing secret (>= 256 bits). Override in production.
-      secret: ${APP_JWT_SECRET:Y2hhbmdlLW1lLXRoaXMtaXMtYS1kZXYtb25seS1qd3Qtc2lnbmluZy1zZWNyZXQtMjU2LWJpdHM=}
-      # Access token lifetime in milliseconds (default 1 hour). Override in production.
-      expiration-ms: ${APP_JWT_EXPIRATION_MS:3600000}
-
   datasource:
-    url: jdbc:mysql://localhost:3306/emp_mng_sys?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/emp_mng_sys?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: springuser
     password: 123
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -63,3 +47,27 @@ logging:
     root: INFO
     com.empmngsys.empmngsys: DEBUG
     org.hibernate.SQL: DEBUG
+
+# Application security settings (BCrypt-encoded credentials + JWT signing).
+# Override these in production via environment variables or an external config.
+app:
+  security:
+    user:
+      username: ${APP_USER_USERNAME:user}
+      password: ${APP_USER_PASSWORD:user123}
+    admin:
+      username: ${APP_ADMIN_USERNAME:admin}
+      password: ${APP_ADMIN_PASSWORD:admin123}
+    jwt:
+      # Base64-encoded HMAC signing secret (>= 256 bits). Override in production.
+      secret: ${APP_JWT_SECRET:Y2hhbmdlLW1lLXRoaXMtaXMtYS1kZXYtb25seS1qd3Qtc2lnbmluZy1zZWNyZXQtMjU2LWJpdHM=}
+      # Access token lifetime in milliseconds (default 1 hour). Override in production.
+      expiration-ms: ${APP_JWT_EXPIRATION_MS:3600000}
+
+# Swagger / OpenAPI (springdoc)
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html          # UI available at http://localhost:8080/swagger-ui.html
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs              # raw OpenAPI JSON
